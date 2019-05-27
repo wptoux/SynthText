@@ -34,11 +34,12 @@ def error(msg):
 class TimeoutException(Exception): pass
 @contextmanager
 def time_limit(seconds):
-    def signal_handler(signum, frame):
-        raise TimeoutException(colorize(Color.RED, "   *** Timed out!", highlight=True))
-    signal.signal(signal.SIGALRM, signal_handler)
-    signal.alarm(seconds)
+    # def signal_handler(signum, frame):
+    #     raise TimeoutException(colorize(Color.RED, "   *** Timed out!", highlight=True))
+    # signal.signal(signal.SIGALRM, signal_handler)
+    # signal.alarm(seconds)
     try:
         yield
     finally:
-        signal.alarm(0)
+        pass
+        # signal.alarm(0)

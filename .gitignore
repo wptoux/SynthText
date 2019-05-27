@@ -1,3 +1,6 @@
+.idea
+data/8000/
+!data/8000/bg_img/ant+hill_1.jpg
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
