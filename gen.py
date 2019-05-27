@@ -75,7 +75,7 @@ def add_res_to_db(imgname, res, db):
         db['data'][dname].attrs['txt'] = L
 
 
-def main(viz=False, use8000=False):
+def main(viz=False, use8000=False, max_placement_num=1):
     # open databases:
     print(colorize(Color.BLUE, 'getting data..', bold=True))
     if use8000:
@@ -129,7 +129,7 @@ def main(viz=False, use8000=False):
 
             print(colorize(Color.RED, '%d of %d' % (i, end_idx - 1), bold=True))
             res = RV3.render_text(img, depth, seg, area, label,
-                                  ninstance=INSTANCE_PER_IMAGE, viz=viz)
+                                  ninstance=INSTANCE_PER_IMAGE, viz=viz, max_placement_num=max_placement_num)
             if len(res) > 0:
                 # non-empty : successful in placing text:
                 add_res_to_db(imname, res, out_db)
