@@ -1,3 +1,7 @@
+# SynthTextChinese
+SynthText that support Chinese, results can be found in [gen.ipynb](gen.ipynb)  
+支持中文的SynthText，包括一些生成效率的提升。生成内容见 [gen.ipynb](gen.ipynb)
+
 # SynthText
 Code for generating synthetic text images as described in ["Synthetic Data for Text Localisation in Natural Images", Ankush Gupta, Andrea Vedaldi, Andrew Zisserman, CVPR 2016](http://www.robots.ox.ac.uk/~vgg/data/scenetext/).
 
