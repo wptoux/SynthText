@@ -5,14 +5,13 @@ from PIL import Image
 import cv2
 
 # Define some configuration variables:
-INSTANCE_PER_IMAGE = 1  # no. of times to use the same image
 SECS_PER_IMG = 5  # max time per image in seconds
 
 # path to the data-file, containing image, depth and segmentation:
 DATA_PATH = 'data'
 
 
-def generator():
+def generator(instance_per_img=5):
     # open databases:
     depth_db = h5py.File('data/8000/depth.h5')
     seg_db = h5py.File('data/8000/seg.h5')['mask']
@@ -44,7 +43,7 @@ def generator():
             seg = np.array(Image.fromarray(seg).resize(sz, Image.NEAREST))
 
             res = RV3.render_text(img, depth, seg, area, label,
-                                  ninstance=INSTANCE_PER_IMAGE)
+                                  ninstance=instance_per_img)
             if len(res) > 0:
                 # non-empty : successful in placing text:
                 for r in res:
@@ -63,4 +62,4 @@ if __name__ == '__main__':
 
     for g in gen:
         print(g['txt'])
-        cv2.imshow('img', g['img'])
+        # cv2.imshow('img', g['img'])

@@ -339,10 +339,17 @@ class RenderFont(object):
         """
         # H,W = mask.shape
         H, W = self.robust_HW(mask)
-        f_asp = self.font_state.get_aspect_ratio(font)
+
+        # filter too small region
+        if H < 40 and W < 40:
+            return
+
+        # f_asp = self.font_state.get_aspect_ratio(font)
+        f_asp = 2
 
         # find the maximum height in pixels:
-        max_font_h = min(0.9 * H, (1 / f_asp) * W / (self.min_nchar + 1))
+        # max_font_h = min(0.9 * H, (1 / f_asp) * W / (self.min_nchar + 1))
+        max_font_h = min(H, W / f_asp / self.min_nchar)
         max_font_h = min(max_font_h, self.max_font_h)
         if max_font_h < self.min_font_h:  # not possible to place any text here
             return  # None
@@ -370,7 +377,8 @@ class RenderFont(object):
             nline, nchar = self.get_nline_nchar(mask.shape[:2], f_h, f_h * f_asp)
             # print "  > nline = %d, nchar = %d"%(nline, nchar)
 
-            assert nline >= 1 and nchar >= self.min_nchar
+            if not (nline >= 1 and nchar >= self.min_nchar):
+                continue
 
             # sample text:
             text_type = sample_weighted(self.p_text)
@@ -441,6 +449,13 @@ class FontState(object):
         self.FONT_LIST = osp.join(data_dir, 'fonts/fontlist.txt')
         self.fonts = [os.path.join(data_dir, 'fonts', f.strip()) for f in open(self.FONT_LIST)]
 
+        freetype.init()
+        cache_size = 500
+        self.font_cache = []
+        for i in range(cache_size):
+            f = self._sample()
+            self.font_cache.append(self._init_font(f))
+
     def get_aspect_ratio(self, font, size=None):
         """
         Returns the median aspect ratio of each character of the font.
@@ -480,6 +495,9 @@ class FontState(object):
         return m[0] * font_size_px + m[1]  # linear model
 
     def sample(self):
+        return random.choice(self.font_cache)
+
+    def _sample(self):
         """
         Samples from the font state distribution
         """
@@ -501,7 +519,7 @@ class FontState(object):
             'random_kerning_amount': self.random_kerning_amount,
         }
 
-    def init_font(self, fs):
+    def _init_font(self, fs):
         """
         Initializes a pygame font.
         FS : font-state sample
@@ -535,8 +553,8 @@ class TextSource(object):
         self.txt = []
 
         for fn in os.listdir(text_path):
-            with open(text_path + fn, 'r', encoding='utf-8') as f:
-                self.txt.extend([l.strip() for l in f.readlines()])
+            with open(osp.join(text_path, fn), 'r', encoding='utf-8') as f:
+                self.txt.extend([re.subn(r'[【】\{\}“”‘’（）\'\"\|〔〕]', '', l.strip())[0] for l in f.readlines()])
 
         # distribution over line/words for LINE/PARA:
         self.p_line_nline = np.array([0.85, 0.10, 0.05])
@@ -662,7 +680,7 @@ class TextSource(object):
     def sample(self, nline_max, nchar_max, kind='WORD'):
         return self.fdict[kind](nline_max, nchar_max)
 
-    def sample_word(self, nline_max, nchar_max, niter=100):
+    def sample_word(self, nline_max, nchar_max, niter=5):
         iter = 0
         while iter < niter:
             rand_line = self.txt[np.random.choice(len(self.txt))]

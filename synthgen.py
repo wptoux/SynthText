@@ -202,7 +202,7 @@ def rescale_frontoparallel(p_fp, box_fp, p_im):
     lt1 = np.linalg.norm(p_im[n1, :] - p_im[n0, :])
     lt2 = np.linalg.norm(p_im[n1, :] - p_im[n2, :])
 
-    s = max(lt1 / l1, lt2 / l2)
+    s = max(lt1 // l1, lt2 // l2)
     if not np.isfinite(s):
         s = 1.0
     return s
@@ -380,7 +380,7 @@ class RendererV3(object):
         # self.colorizerV2 = colorV2.Colorize(data_dir)
 
         self.min_char_height = 8  # px
-        self.min_asp_ratio = 0.4  #
+        self.min_asp_ratio = 0.25  #
 
         self.max_text_regions = 7
 
@@ -478,7 +478,7 @@ class RendererV3(object):
                    and asp_ratio < 1.0 / self.min_asp_ratio)
         return is_good
 
-    def get_min_h(selg, bb, text):
+    def get_min_h(self, bb, text):
         # find min-height:
         h = np.linalg.norm(bb[:, 3, :] - bb[:, 0, :], axis=0)
         # remove newlines and spaces:
@@ -504,7 +504,6 @@ class RendererV3(object):
 
     def place_text(self, rgb, collision_mask, H, Hinv):
         font = self.text_renderer.font_state.sample()
-        font = self.text_renderer.font_state.init_font(font)
 
         render_res = self.text_renderer.render_sample(font, collision_mask)
         if render_res is None:  # rendering not successful
@@ -516,7 +515,7 @@ class RendererV3(object):
         collision_mask += (255 * (text_mask > 0)).astype('uint8')
 
         # warp the object mask back onto the image:
-        text_mask_orig = text_mask.copy()
+        # text_mask_orig = text_mask.copy()
         bb_orig = bb.copy()
         text_mask = self.warpHomography(text_mask, H, rgb.shape[:2][::-1])
         bb = self.homographyBB(bb, Hinv)
@@ -669,6 +668,8 @@ class RendererV3(object):
                 except TimeoutException as msg:
                     print(msg)
                     continue
+                except KeyboardInterrupt:
+                    break
                 except:
                     traceback.print_exc()
                     # some error in placing text on the region
